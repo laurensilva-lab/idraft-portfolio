@@ -28,6 +28,20 @@ export default function App() {
   const [formError, setFormError] = useState("");
   const [updating, setUpdating] = useState(false);
   const [updateMsg, setUpdateMsg] = useState("");
+  const [expandedWidget, setExpandedWidget] = useState(null);
+
+  useEffect(() => {
+    if (!expandedWidget) return;
+    function onKey(e) {
+      if (e.key === "Escape") setExpandedWidget(null);
+    }
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [expandedWidget]);
 
   useEffect(() => {
     saveJSON(KEYS.HOLDINGS, { stocks, crypto });
@@ -229,7 +243,10 @@ export default function App() {
               list={crypto}
               sparkData={sparkFor(snapshots, "totalCrypto")}
               onAdd={() => openAddForm("crypto")}
-              onSeeAll={() => setFilter("crypto")}
+              isExpanded={expandedWidget === "crypto"}
+              onToggle={() => setExpandedWidget((p) => (p === "crypto" ? null : "crypto"))}
+              onEdit={(h) => openEditForm("crypto", h)}
+              onDelete={(id) => deleteHolding("crypto", id)}
             />
             <PortfolioWidget
               title="Acciones"
@@ -239,7 +256,10 @@ export default function App() {
               list={stocks}
               sparkData={sparkFor(snapshots, "totalStocks")}
               onAdd={() => openAddForm("stocks")}
-              onSeeAll={() => setFilter("stocks")}
+              isExpanded={expandedWidget === "stocks"}
+              onToggle={() => setExpandedWidget((p) => (p === "stocks" ? null : "stocks"))}
+              onEdit={(h) => openEditForm("stocks", h)}
+              onDelete={(id) => deleteHolding("stocks", id)}
             />
           </div>
 
@@ -269,6 +289,8 @@ export default function App() {
           />
         </main>
       </div>
+
+      {expandedWidget && <div className="backdropOverlay" onClick={() => setExpandedWidget(null)} />}
     </div>
   );
 }
