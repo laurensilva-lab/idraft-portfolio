@@ -3,10 +3,10 @@
 /* Variables adaptadas a Glassmorphism Oscuro tipo VisionOS */
 :root {
   --page: #0B0C10;
-  --glass: rgba(30, 32, 40, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.18);
-  --glass-dark: rgba(18, 20, 28, 0.65);
-  --glass-dark-border: rgba(255, 255, 255, 0.22);
+  --glass: rgba(30, 32, 40, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.28);
+  --glass-dark: rgba(18, 20, 28, 0.90);
+  --glass-dark-border: rgba(255, 255, 255, 0.32);
   --text: #F3F4F6;
   --text-on-dark: #FFFFFF;
   --text-muted: #9CA3AF;
@@ -38,13 +38,15 @@ body {
   overflow-x: hidden;
 }
 
-/* 2. Contenedor principal que flota en el centro */
+/* 2. Contenedor principal a pantalla completa */
 .appOuter {
   position: relative;
   min-height: 100vh;
-  padding: 30px 20px;
-  max-width: 1240px;
-  margin: 0 auto;
+  padding: 24px 24px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 /* Desactivamos los blobs viejos para evitar superposición de colores pastel */
@@ -54,43 +56,44 @@ body {
   position: relative; 
   z-index: 1; 
   display: grid; 
-  grid-template-columns: 240px 1fr; 
-  gap: 22px; 
-  align-items: start; 
+  grid-template-columns: 260px 1fr; 
+  gap: 20px; 
+  align-items: start;
+  width: 100%;
 }
 @media (max-width: 900px) { .shell { grid-template-columns: 1fr; } }
 
 /* 3. Paneles estilo Cristal Esmerilado (Glassmorphism) */
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.18);
   transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
 }
 .glass:hover { 
   transform: translateY(-3px); 
-  border-color: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.3); 
+  border-color: rgba(255, 255, 255, 0.42);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.28); 
 }
 
 .glassDark {
   background: var(--glass-dark);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
   border: 1px solid var(--glass-dark-border);
   color: var(--text-on-dark);
   border-radius: 26px;
   padding: 24px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.22);
   transition: transform .25s ease, box-shadow .25s ease;
 }
 .glassDark:hover { 
   transform: translateY(-3px); 
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.35); 
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.32); 
 }
 
 /* 4. Barra lateral (Sidebar) */
@@ -231,8 +234,8 @@ body {
   font-size: 12.5px; 
   padding: 8px 12px; 
   border-radius: 12px; 
-  background: rgba(0, 0, 0, 0.25); 
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.45); 
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 .widgetEmpty { font-size: 12.5px; color: var(--text-muted); padding: 10px 2px; }
 
@@ -257,7 +260,7 @@ body {
 .tableCard { display: flex; flex-direction: column; gap: 16px; }
 .tableHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 
-.filterTabs { display: flex; gap: 6px; background: rgba(0, 0, 0, 0.3); padding: 4px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); }
+.filterTabs { display: flex; gap: 6px; background: rgba(0, 0, 0, 0.55); padding: 4px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.14); }
 .filterTab { border: none; background: none; padding: 7px 14px; border-radius: 10px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.2s ease; }
 .filterTab.active { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
 
@@ -301,7 +304,7 @@ body {
 .segBtn.active { background: rgba(255, 255, 255, 0.2); color: #fff; }
 .segBtn.disabled { opacity: .5; pointer-events: none; }
 
-.formCard { background: rgba(18, 20, 28, 0.699); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 18px; }
+.formCard { background: rgba(18, 20, 28, 0.92); border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 20px; padding: 18px; }
 .formGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 @media (max-width: 640px) { .formGrid { grid-template-columns: 1fr 1fr; } }
 .formGrid label { display: flex; flex-direction: column; gap: 5px; font-size: 11.5px; color: var(--text-muted); }
