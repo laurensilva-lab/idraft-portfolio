@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import Background from "./components/Background.jsx";
-import Sidebar from "./components/Sidebar.jsx";
 import Hero from "./components/Hero.jsx";
 import PortfolioWidget from "./components/PortfolioWidget.jsx";
 import DonutMini from "./components/DonutMini.jsx";
@@ -218,10 +217,7 @@ export default function App() {
     <div className="appOuter">
       <Background />
 
-      <div className="shell">
-        <Sidebar onAddCrypto={() => openAddForm("crypto")} onAddStock={() => openAddForm("stocks")} />
-
-        <main className="main">
+      <main className="main">
           <Hero
             totalAll={totalAll}
             investedAll={investedAll}
@@ -287,8 +283,7 @@ export default function App() {
             onSubmit={submitForm}
             onCancel={closeForm}
           />
-        </main>
-      </div>
+      </main>
 
       {expandedWidget && <div className="backdropOverlay" onClick={() => setExpandedWidget(null)} />}
     </div>

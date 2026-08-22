@@ -28,14 +28,20 @@ html, body, #root {
 }
 
 body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background-image: url("./IMG/FONDOWEB.jpg");
   background-size: cover;
   background-position: center 30%;
   background-repeat: no-repeat;
-  background-attachment: fixed;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--text);
-  overflow-x: hidden;
 }
 
 /* 2. Contenedor principal a pantalla completa */
@@ -52,16 +58,7 @@ body {
 /* Desactivamos los blobs viejos para evitar superposición de colores pastel */
 .bgLayer { display: none; }
 
-.shell { 
-  position: relative; 
-  z-index: 1; 
-  display: grid; 
-  grid-template-columns: 260px 1fr; 
-  gap: 20px; 
-  align-items: start;
-  width: 100%;
-}
-@media (max-width: 900px) { .shell { grid-template-columns: 1fr; } }
+/* shell ya no se usa, todo va en .main directo */
 
 /* 3. Paneles estilo Cristal Esmerilado (Glassmorphism) */
 .glass {
@@ -153,7 +150,16 @@ body {
 .sidebarSpacer { flex: 1; }
 .sidebarNote { font-size: 11.5px; color: var(--text-muted); line-height: 1.5; }
 
-.main { display: flex; flex-direction: column; gap: 20px; }
+.main { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 20px; 
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
 
 /* 5. Header / Hero */
 .hero { display: flex; flex-direction: column; }
