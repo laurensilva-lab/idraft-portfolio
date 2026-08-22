@@ -28,66 +28,54 @@ export default function App() {
   const [updating, setUpdating] = useState(false);
   const [updateMsg, setUpdateMsg] = useState("");
 
-  useEffect(() => {
-    saveJSON(KEYS.HOLDINGS, { stocks, crypto });
-  }, [stocks, crypto]);
+  // Un solo estado para saber qué panel está expandido
+  const [expanded, setExpanded] = useState(null); // "crypto" | "stocks" | "donut1" | "donut2" | "evolution" | "table"
 
-  useEffect(() => {
-    saveJSON(KEYS.SNAPSHOTS, snapshots);
-  }, [snapshots]);
-
-  useEffect(() => {
-    if (lastUpdated) saveJSON(KEYS.LAST_UPDATED, lastUpdated);
-  }, [lastUpdated]);
-
-  function listFor(section) {
-    return section === "stocks" ? stocks : crypto;
+  function toggle(id) {
+    setExpanded(p => p === id ? null : id);
   }
+
+  // Cerrar con Escape o click en overlay
+  useEffect(() => {
+    if (!expanded) return;
+    function onKey(e) { if (e.key === "Escape") setExpanded(null); }
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [expanded]);
+
+  useEffect(() => { saveJSON(KEYS.HOLDINGS, { stocks, crypto }); }, [stocks, crypto]);
+  useEffect(() => { saveJSON(KEYS.SNAPSHOTS, snapshots); }, [snapshots]);
+  useEffect(() => { if (lastUpdated) saveJSON(KEYS.LAST_UPDATED, lastUpdated); }, [lastUpdated]);
+
+  function listFor(section) { return section === "stocks" ? stocks : crypto; }
   function setListFor(section, updater) {
-    if (section === "stocks") setStocks(updater);
-    else setCrypto(updater);
+    if (section === "stocks") setStocks(updater); else setCrypto(updater);
   }
 
   function openAddForm(section) {
-    setFormOpen(true);
-    setEditingId(null);
+    setFormOpen(true); setEditingId(null);
     setFormSection(section || (filter !== "all" ? filter : "crypto"));
-    setForm(emptyForm);
-    setFormError("");
+    setForm(emptyForm); setFormError("");
   }
 
   function openEditForm(section, h) {
-    setFormOpen(true);
-    setEditingId(h.id);
-    setFormSection(section);
-    setForm({
-      symbol: h.symbol,
-      name: h.name || "",
-      quantity: String(h.quantity),
-      avgCost: String(h.avgCost),
-      currentPrice: String(h.currentPrice),
-    });
+    setFormOpen(true); setEditingId(h.id); setFormSection(section);
+    setForm({ symbol: h.symbol, name: h.name || "", quantity: String(h.quantity), avgCost: String(h.avgCost), currentPrice: String(h.currentPrice) });
     setFormError("");
   }
 
-  function closeForm() {
-    setFormOpen(false);
-    setEditingId(null);
-    setForm(emptyForm);
-    setFormError("");
-  }
+  function closeForm() { setFormOpen(false); setEditingId(null); setForm(emptyForm); setFormError(""); }
 
   function submitForm() {
     const symbol = form.symbol.trim().toUpperCase();
     const quantity = parseFloat(form.quantity);
     const avgCost = parseFloat(form.avgCost);
     const currentPrice = parseFloat(form.currentPrice);
-
     if (!symbol) return setFormError("Ingresá un símbolo.");
     if (!Number.isFinite(quantity) || quantity <= 0) return setFormError("La cantidad debe ser mayor a 0.");
     if (!Number.isFinite(avgCost) || avgCost < 0) return setFormError("El precio de compra no puede ser negativo.");
     if (!Number.isFinite(currentPrice) || currentPrice < 0) return setFormError("El precio actual no puede ser negativo.");
-
     const holding = { id: editingId || uid(), symbol, name: form.name.trim(), quantity, avgCost, currentPrice };
     setListFor(formSection, (prev) => {
       if (editingId) return prev.map((h) => (h.id === editingId ? holding : h));
@@ -96,24 +84,16 @@ export default function App() {
     closeForm();
   }
 
-  function deleteHolding(section, id) {
-    setListFor(section, (prev) => prev.filter((h) => h.id !== id));
-  }
+  function deleteHolding(section, id) { setListFor(section, (prev) => prev.filter((h) => h.id !== id)); }
 
   function upsertSnapshot(total, totalStocksArg, totalCryptoArg) {
     const today = new Date().toISOString().slice(0, 10);
     const entry = { date: today, total, totalStocks: totalStocksArg, totalCrypto: totalCryptoArg };
     setSnapshots((prev) => {
       const idx = prev.findIndex((s) => s.date === today);
-      let next;
-      if (idx >= 0) {
-        next = [...prev];
-        next[idx] = entry;
-      } else {
-        next = [...prev, entry];
-      }
-      next.sort((a, b) => a.date.localeCompare(b.date));
-      return next;
+      let next = idx >= 0 ? [...prev] : [...prev, entry];
+      if (idx >= 0) next[idx] = entry;
+      return next.sort((a, b) => a.date.localeCompare(b.date));
     });
   }
 
@@ -123,54 +103,28 @@ export default function App() {
       setTimeout(() => setUpdateMsg(""), 3000);
       return;
     }
-    setUpdating(true);
-    setUpdateMsg("");
-    let successCount = 0;
-    let failCount = 0;
+    setUpdating(true); setUpdateMsg("");
+    let successCount = 0, failCount = 0;
 
-    const newCrypto = await Promise.all(
-      crypto.map(async (h) => {
-        try {
-          const price = await fetchCryptoPrice(h.symbol);
-          successCount++;
-          return { ...h, currentPrice: price };
-        } catch (e) {
-          failCount++;
-          return h;
-        }
-      })
-    );
+    const newCrypto = await Promise.all(crypto.map(async (h) => {
+      try { const price = await fetchCryptoPrice(h.symbol); successCount++; return { ...h, currentPrice: price }; }
+      catch { failCount++; return h; }
+    }));
+    const newStocks = await Promise.all(stocks.map(async (h) => {
+      try { const price = await fetchStockPrice(h.symbol); successCount++; return { ...h, currentPrice: price }; }
+      catch { failCount++; return h; }
+    }));
 
-    const newStocks = await Promise.all(
-      stocks.map(async (h) => {
-        try {
-          const price = await fetchStockPrice(h.symbol);
-          successCount++;
-          return { ...h, currentPrice: price };
-        } catch (e) {
-          failCount++;
-          return h;
-        }
-      })
-    );
-
-    setCrypto(newCrypto);
-    setStocks(newStocks);
-
+    setCrypto(newCrypto); setStocks(newStocks);
     const newTotalCrypto = newCrypto.reduce((s, h) => s + valueOf(h), 0);
     const newTotalStocks = newStocks.reduce((s, h) => s + valueOf(h), 0);
     upsertSnapshot(newTotalCrypto + newTotalStocks, newTotalStocks, newTotalCrypto);
-
     setLastUpdated(new Date().toISOString());
     setUpdating(false);
 
-    if (successCount === 0) {
-      setUpdateMsg("No pude conectarme a las cotizaciones desde acá. Cargá los precios a mano.");
-    } else if (failCount > 0) {
-      setUpdateMsg(`Actualicé ${successCount} de ${successCount + failCount} precios. El resto lo podés cargar a mano.`);
-    } else {
-      setUpdateMsg(`Precios actualizados (${successCount}).`);
-    }
+    if (successCount === 0) setUpdateMsg("No pude conectarme. Cargá los precios a mano.");
+    else if (failCount > 0) setUpdateMsg(`Actualicé ${successCount} de ${successCount + failCount} precios.`);
+    else setUpdateMsg(`Precios actualizados (${successCount}).`);
     setTimeout(() => setUpdateMsg(""), 6000);
   }
 
@@ -203,68 +157,53 @@ export default function App() {
     <div className="appOuter">
       <Background />
 
+      {/* Overlay sin blur — solo oscurece, click cierra */}
+      {expanded && <div className="backdropOverlay" onClick={() => setExpanded(null)} />}
+
       <main className="main">
-          <Hero
-            totalAll={totalAll}
-            investedAll={investedAll}
-            gainPctAll={gainPctAll}
-            lastUpdated={lastUpdated}
-            pctCrypto={pctCrypto}
-            pctStocks={pctStocks}
-            updating={updating}
-            updateMsg={updateMsg}
-            onRefresh={refreshPrices}
+        <Hero
+          totalAll={totalAll} investedAll={investedAll} gainPctAll={gainPctAll}
+          lastUpdated={lastUpdated} pctCrypto={pctCrypto} pctStocks={pctStocks}
+          updating={updating} updateMsg={updateMsg} onRefresh={refreshPrices}
+        />
+
+        <div className="widgetsRow">
+          <PortfolioWidget
+            title="Cripto" broker="Binance" icon={Bitcoin} accent={COLORS.amber}
+            list={crypto} sparkData={sparkFor(snapshots, "totalCrypto")}
+            onAdd={() => openAddForm("crypto")}
+            isExpanded={expanded === "crypto"} onToggle={() => toggle("crypto")}
+            onEdit={(h) => openEditForm("crypto", h)}
+            onDelete={(id) => deleteHolding("crypto", id)}
           />
-
-          <div className="widgetsRow">
-            <PortfolioWidget
-              title="Cripto"
-              broker="Binance"
-              icon={Bitcoin}
-              accent={COLORS.amber}
-              list={crypto}
-              sparkData={sparkFor(snapshots, "totalCrypto")}
-              onAdd={() => openAddForm("crypto")}
-              onEdit={(h) => openEditForm("crypto", h)}
-              onDelete={(id) => deleteHolding("crypto", id)}
-            />
-            <PortfolioWidget
-              title="Acciones"
-              broker="Prex"
-              icon={Landmark}
-              accent={COLORS.violet}
-              list={stocks}
-              sparkData={sparkFor(snapshots, "totalStocks")}
-              onAdd={() => openAddForm("stocks")}
-              onEdit={(h) => openEditForm("stocks", h)}
-              onDelete={(id) => deleteHolding("stocks", id)}
-            />
-          </div>
-
-          <div className="donutsRow">
-            <DonutMini title="Distribución" data={allocationData} />
-            <DonutMini title="Concentración" data={concentracionData} />
-          </div>
-
-          <EvolutionChart snapshots={snapshots} />
-
-          <HoldingsTable
-            filter={filter}
-            setFilter={setFilter}
-            filteredHoldings={filteredHoldings}
-            formOpen={formOpen}
-            formSection={formSection}
-            setFormSection={setFormSection}
-            editingId={editingId}
-            form={form}
-            setForm={setForm}
-            formError={formError}
-            onOpenAdd={() => openAddForm()}
-            onEdit={openEditForm}
-            onDelete={deleteHolding}
-            onSubmit={submitForm}
-            onCancel={closeForm}
+          <PortfolioWidget
+            title="Acciones" broker="Prex" icon={Landmark} accent={COLORS.violet}
+            list={stocks} sparkData={sparkFor(snapshots, "totalStocks")}
+            onAdd={() => openAddForm("stocks")}
+            isExpanded={expanded === "stocks"} onToggle={() => toggle("stocks")}
+            onEdit={(h) => openEditForm("stocks", h)}
+            onDelete={(id) => deleteHolding("stocks", id)}
           />
+        </div>
+
+        <div className="donutsRow">
+          <DonutMini title="Distribución" data={allocationData}
+            isExpanded={expanded === "donut1"} onToggle={() => toggle("donut1")} />
+          <DonutMini title="Concentración" data={concentracionData}
+            isExpanded={expanded === "donut2"} onToggle={() => toggle("donut2")} />
+        </div>
+
+        <EvolutionChart snapshots={snapshots}
+          isExpanded={expanded === "evolution"} onToggle={() => toggle("evolution")} />
+
+        <HoldingsTable
+          filter={filter} setFilter={setFilter} filteredHoldings={filteredHoldings}
+          formOpen={formOpen} formSection={formSection} setFormSection={setFormSection}
+          editingId={editingId} form={form} setForm={setForm} formError={formError}
+          onOpenAdd={() => openAddForm()} onEdit={openEditForm} onDelete={deleteHolding}
+          onSubmit={submitForm} onCancel={closeForm}
+          isExpanded={expanded === "table"} onToggle={() => toggle("table")}
+        />
       </main>
     </div>
   );

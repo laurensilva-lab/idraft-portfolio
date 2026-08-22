@@ -383,9 +383,34 @@ body::before {
 
 /* EFECTO DE HOVER Y PANTALLA COMPLETA */
 
-/* Hover suave al pasar el mouse */
-.glass:hover, .glassDark:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+/* Overlay: solo oscurece, SIN blur, para no crear stacking context */
+.backdropOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 50;
+  cursor: pointer;
+}
+
+/* Componente expandido: ocupa casi toda la pantalla por encima del overlay */
+.glass.expanded, .glassDark.expanded {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 95vw !important;
+  max-width: 900px !important;
+  max-height: 90vh !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  z-index: 100 !important;
+  cursor: default;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Lista dentro del expanded sin altura máxima fija */
+.expandedList {
+  overflow-y: auto;
+  max-height: 60vh;
 }
