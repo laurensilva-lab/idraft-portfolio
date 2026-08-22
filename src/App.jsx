@@ -217,6 +217,8 @@ export default function App() {
     <div className="appOuter">
       <Background />
 
+      {expandedWidget && <div className="backdropOverlay" onClick={() => setExpandedWidget(null)} />}
+
       <main className="main">
           <Hero
             totalAll={totalAll}
@@ -284,8 +286,6 @@ export default function App() {
             onCancel={closeForm}
           />
       </main>
-
-      {expandedWidget && <div className="backdropOverlay" onClick={() => setExpandedWidget(null)} />}
     </div>
   );
 }

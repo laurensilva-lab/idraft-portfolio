@@ -9,7 +9,9 @@ export default function PortfolioWidget({ title, broker, icon: Icon, accent, lis
   const all = [...list].sort((a, b) => valueOf(b) - valueOf(a));
 
   return (
-    <div className={"glass widget" + (isExpanded ? " expanded" : "")} onClick={!isExpanded ? onToggle : undefined}>
+    <div className={"glass widget" + (isExpanded ? " expanded" : "")} 
+      onClick={!isExpanded ? onToggle : (e) => e.stopPropagation()}
+    >
       <div className="widgetHeader">
         <div className="widgetIcon" style={{ background: accent + "22", color: accent }}>
           <Icon size={16} />
